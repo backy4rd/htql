@@ -8,7 +8,7 @@ const readlineSync = require('readline-sync');
 const cookie = require('./utils/cookie');
 const cli = require('./utils/cli');
 
-rootCas.addFile(path.resolve(__dirname, 'cert/htql.pem'));
+rootCas.addFile(path.resolve(__dirname, 'cert', 'htql.pem'));
 require('https').globalAgent.options.ca = rootCas;
 
 const groupsPattern = /(?<=class="((main_3)|(level_1_\d))"( style.+)?>).+?(?=<\/td>)/g;
