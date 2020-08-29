@@ -1,0 +1,25 @@
+{
+  "name": "htql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "node-fetch": "^2.6.0",
+    "readline-sync": "^1.4.10",
+    "ssl-root-cas": "^1.3.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backy4rd/htql.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/backy4rd/htql/issues"
+  },
+  "homepage": "https://github.com/backy4rd/htql#readme"
+}
