@@ -158,7 +158,7 @@ async function main() {
   validateParameters({ semester, year, subjectId, groupId, method });
 
   const studentId = readlineSync.question('MSSV: ');
-  const password = readlineSync.question('Mat Khau: ');
+  const password = readlineSync.question('Mat Khau: ', { hideEchoBack: true });
 
   const sessionId = await loginAndGetSessionId(studentId, password);
 
