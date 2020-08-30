@@ -57,12 +57,14 @@ async function getGroups(semester, year, subjectId, sessionId) {
       body: `cmbHocKy=${semester}&cmbNamHoc=${year}&txtMaMH=${subjectId}`,
     },
   );
-  // replace uneccessary text
+  // remove annoying character
   const html = (await response.text()).replace(/&nbsp;/g, '');
   const flatData = html.match(groupsPattern);
 
   if (flatData.length == 0) {
-    throw new Error('invalid mahp or hoc phan is not open in this semester');
+    throw new Error(
+      `invalid subjectId or subject isn't opened in this semester`,
+    );
   }
 
   const groups = [];
@@ -101,6 +103,17 @@ function isGroupRegistrable(groups, groupId) {
   return false;
 }
 
+async function isRegistrationAvailable(sessionId) {
+  const response = await fetch(
+    'https://qldt.ctu.edu.vn/htql/dkmh/student/index.php?action=dky_mhoc',
+    {
+      headers: { cookie: `PHPSESSID=${sessionId}` },
+    },
+  );
+
+  return !/Đã hết thời gian đăng ký học phần/.test(await response.text());
+}
+
 async function joinGroup(subjectId, groupId, method, sessionId) {
   const response = await fetch(
     'https://qldt.ctu.edu.vn/htql/dkmh/student/index.php?action=dky_mhoc',
@@ -131,7 +144,13 @@ async function main() {
 
   const sessionId = await loginAndGetSessionId(studentId, password);
 
-  console.log('\nLogin success --> Scanning for group');
+  console.log('\nLogin success !!!');
+
+  if (!(await isRegistrationAvailable(sessionId))) {
+    throw new Error('not time to register');
+  }
+
+  console.log('Scanning for group...');
 
   let groups = await getGroups(semester, year, subjectId, sessionId);
   if (!isGroupExist(groups, groupId)) {
@@ -145,7 +164,7 @@ async function main() {
       clearInterval(interval);
       await joinGroup(subjectId, groupId, method, sessionId);
 
-      console.log('\nJoined group!!');
+      console.log('\nJoined group !!!');
       console.log(
         `---> Result can be found in ${path.resolve(__dirname, 'htql.html')}`,
       );
