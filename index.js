@@ -7,6 +7,7 @@ const rootCas = require('ssl-root-cas').create();
 const readlineSync = require('readline-sync');
 const cookie = require('./utils/cookie');
 const cli = require('./utils/cli');
+const argumentHandler = require('./utils/argumentHandler');
 
 rootCas.addFile(path.resolve(__dirname, 'cert', 'htql.pem'));
 require('https').globalAgent.options.ca = rootCas;
@@ -85,7 +86,7 @@ async function getGroups(semester, year, subjectId, sessionId) {
 }
 
 function isGroupExist(groups, groupId) {
-  return groups.some(lop => lop.kihieu === groupId);
+  return groups.some(group => group.kihieu === groupId);
 }
 
 function isGroupRegistrable(groups, groupId) {
@@ -96,41 +97,8 @@ function isGroupRegistrable(groups, groupId) {
       return false;
     }
   }
-}
 
-function validateParameters({ semester, year, subjectId, groupId, method }) {
-  if (!semester || !year || !subjectId || !groupId || !method) {
-    throw new Error('missing parameter');
-  }
-
-  if (!/^[123]$/.test(semester)) {
-    throw new Error('invalid semester');
-  }
-
-  if (!/^20\d\d$/.test(year)) {
-    throw new Error('invalid year');
-  }
-
-  if (!/^[a-zA-Z]{2}\d{3}$/.test(subjectId)) {
-    throw new Error('invalid subjectId');
-  }
-
-  if (!/^\d{1,2}$/.test(groupId)) {
-    throw new Error('invalid groupId');
-  }
-
-  if (method !== 'doinhom' && method !== 'dangki') {
-    throw new Error('invalid method');
-  }
-}
-
-function parseMethod(method) {
-  switch (method) {
-    case 'doinhom':
-      return 'changegroup';
-    case 'dangki':
-      return 'regdetails';
-  }
+  return false;
 }
 
 async function joinGroup(subjectId, groupId, method, sessionId) {
@@ -142,9 +110,7 @@ async function joinGroup(subjectId, groupId, method, sessionId) {
         'content-type': 'application/x-www-form-urlencoded',
         cookie: `PHPSESSID=${sessionId}`,
       },
-      body: `txtMaMonHoc=${subjectId}&hidMaNhom=${groupId}&hidMethod=${parseMethod(
-        method,
-      )}`,
+      body: `txtMaMonHoc=${subjectId}&hidMaNhom=${groupId}&hidMethod=${method}`,
     },
   );
 
@@ -152,10 +118,13 @@ async function joinGroup(subjectId, groupId, method, sessionId) {
 }
 
 async function main() {
-  const { semester, year, subjectId, groupId, method } = cli.parse(
-    process.argv,
-  );
-  validateParameters({ semester, year, subjectId, groupId, method });
+  const {
+    semester,
+    year,
+    subjectId,
+    groupId,
+    method,
+  } = argumentHandler.process(cli.parse(process.argv));
 
   const studentId = readlineSync.question('MSSV: ');
   const password = readlineSync.question('Mat Khau: ', { hideEchoBack: true });
@@ -180,7 +149,6 @@ async function main() {
       console.log(
         `---> Result can be found in ${path.resolve(__dirname, 'htql.html')}`,
       );
-      process.exit(1);
     }
   }, 2000);
 }
