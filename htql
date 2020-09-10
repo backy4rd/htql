@@ -51,16 +51,16 @@ async function main(argv) {
 
   console.log(founded);
 
-  // if (founded) {
-  //   await joinGroup(subjectId, groupId, method, sessionId);
+  if (founded) {
+    await joinGroup(subjectId, groupId, method, sessionId);
 
-  //   console.log('\nJoined group !!!');
-  //   console.log(
-  //     `---> Result can be found in ${path.resolve(__dirname, 'htql.html')}`,
-  //   );
-  // } else {
-  //   throw new Error('not founded registrable group');
-  // }
+    console.log('\nJoined group !!!');
+    console.log(
+      `---> Result can be found in ${path.resolve(__dirname, 'htql.html')}`,
+    );
+  } else {
+    throw new Error('not founded registrable group');
+  }
 }
 
 main(process.argv);
