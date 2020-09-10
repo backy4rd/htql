@@ -1,0 +1,66 @@
+#!/usr/bin/node
+
+const path = require('path');
+const request = require('request');
+const readlineSync = require('readline-sync');
+const rootCas = require('ssl-root-cas').create();
+const { login, joinGroup } = require('./lib/functions');
+const scanGroup = require('./lib/scanner');
+const cli = require('./utils/cli');
+const argumentHandler = require('./utils/argumentHandler');
+
+rootCas.addFile(path.resolve(__dirname, './cert/htql.pem'));
+require('https').globalAgent.options.ca = rootCas;
+
+async function isRegistrationAvailable(sessionId) {
+  const data = await request.get(
+    'https://qldt.ctu.edu.vn/htql/dkmh/student/index.php?action=dky_mhoc',
+    {
+      headers: { cookie: `PHPSESSID=${sessionId}` },
+    },
+  );
+
+  return !/Đã hết thời gian đăng ký học phần/.test(data);
+}
+
+async function main(argv) {
+  const {
+    semester,
+    year,
+    subjectId,
+    groupId,
+    method,
+  } = argumentHandler.process(cli.parse(argv));
+
+  const studentId = readlineSync.question('MSSV: ');
+  const password = readlineSync.question('Mat Khau: ', { hideEchoBack: true });
+
+  const sessionId = await login(studentId, password);
+
+  console.log('\nLogin success !!!');
+
+  if (!(await isRegistrationAvailable(sessionId))) {
+    throw new Error('not time to register');
+  }
+
+  console.log('Scanning for group...');
+  const founded = await scanGroup(
+    { semester, year, subjectId, groupId, method },
+    sessionId,
+  );
+
+  console.log(founded);
+
+  // if (founded) {
+  //   await joinGroup(subjectId, groupId, method, sessionId);
+
+  //   console.log('\nJoined group !!!');
+  //   console.log(
+  //     `---> Result can be found in ${path.resolve(__dirname, 'htql.html')}`,
+  //   );
+  // } else {
+  //   throw new Error('not founded registrable group');
+  // }
+}
+
+main(process.argv);
